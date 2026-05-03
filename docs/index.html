@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EML-Spectral &mdash; Algebras, Spacetime, and Spectral Flow</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">EML-Spectral</span>
+  <span class="badge">v1.0.0</span>
+  <a href="index.html">Home</a>
+  <a href="guide.html">Guide</a>
+  <a href="concepts.html">Concepts</a>
+  <a href="api.html">API</a>
+  <a href="https://github.com/andrewkwatts-maker/EML-Spectral">GitHub</a>
+</nav>
+
+<main>
+
+<div class="hero">
+  <h1>EML-Spectral</h1>
+  <p class="subtitle">Clifford algebras &middot; octonions &middot; exceptional algebras &middot; GR metrics &middot; Lorentz ops &middot; spectral flow &Phi;</p>
+  <div class="big">&Phi;(n, &rho;, &theta;) &nbsp;&middot;&nbsp; (b&#8323;/24)&middot;&chi;<sub>eff</sub> = 144</div>
+  <p style="color:var(--muted);max-width:640px;margin:0 auto;">Built on <a href="https://github.com/andrewkwatts-maker/EML-Math">eml-math</a>. Zero runtime dependencies. Optional Rust + C extensions for batch acceleration of Clifford products, octonion multiplication, Lorentz boosts, and Christoffel symbols.</p>
+  <div class="links">
+    <a href="guide.html">Get Started</a>
+    <a href="api.html" class="sec">API Reference</a>
+    <a href="concepts.html" class="sec">Concepts</a>
+  </div>
+</div>
+
+<h2>Install</h2>
+<pre><code>pip install eml-spectral</code></pre>
+<pre><code>pip install eml-spectral[ext]   <span class="cm"># adds NumPy + SymPy acceleration</span></code></pre>
+
+<h2>Five-line tour</h2>
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> EMLPair, MetricTensor, spectral_flow
+
+z       = EMLPair.from_values(<span class="num">3.0</span>, <span class="num">4.0</span>)            <span class="cm"># two-real complex</span>
+g       = MetricTensor.schwarzschild(rs=<span class="num">2.0</span>)         <span class="cm"># GR metric</span>
+state   = spectral_flow(rho=<span class="num">1.0</span>, n=<span class="num">4</span>, theta=<span class="num">0.0</span>)    <span class="cm"># &Phi;(n, &rho;, &theta;)</span>
+print(z.modulus, g.is_curved(z.real_state), state)</code></pre>
+
+<h2>What's inside</h2>
+<div class="grid2">
+  <div class="card">
+    <h4>Algebras</h4>
+    <p><code>EMLPair</code>, <code>EMLMultivector</code> (Clifford), <code>Octonion</code> (Fano product), <code>FreudenthalTripleSystem</code>, <code>E7_56</code>, <code>E8_248</code>, <code>E8xE8</code> &mdash; the full G&#8322; &rarr; F&#8324; &rarr; E&#8326; &rarr; E&#8327; &rarr; E&#8328; ladder.</p>
+  </div>
+  <div class="card">
+    <h4>Spacetime</h4>
+    <p><code>MinkowskiFourVector</code>, <code>FourMomentum</code>, plus the functional <code>spacetime</code> namespace with <code>boost</code>, <code>rapidity</code>, <code>minkowski_delta</code>, <code>light_cone_type</code>, and <code>light_cone_coordinates</code>.</p>
+  </div>
+  <div class="card">
+    <h4>Metrics</h4>
+    <p><code>MetricTensor</code> with eight named factories: flat, Schwarzschild, FLRW, Calabi&ndash;Yau&#8323;, Klebanov&ndash;Strassler, Heterotic E&#8328;&times;E&#8328;, AdS&#8325;&times;S&#8309;, and G&#8322;-holonomy.</p>
+  </div>
+  <div class="card">
+    <h4>Lattices</h4>
+    <p><code>EMLNDVector</code>, <code>e8_lattice_points</code>, <code>leech_lattice_points</code>, plus Planck-scale tools <code>planck_delta</code>, <code>lattice_distance</code>, <code>is_lattice_neighbor</code>.</p>
+  </div>
+  <div class="card">
+    <h4>Spectral dynamics</h4>
+    <p><code>spectral_flow</code>, <code>racetrack_fixed_point</code>, <code>topology_invariant</code>, <code>EMLState</code>, <code>simulate_pulses</code>, <code>verify_conservation</code> &mdash; the &Phi;(n, &rho;, &theta;) flow with the (b&#8323;/24)&middot;&chi;<sub>eff</sub>=144 invariant.</p>
+  </div>
+  <div class="card">
+    <h4>Built on eml-math</h4>
+    <p>Reuses <code>EMLPoint</code>, the 36 elementary operators, and the Mirror-Pulse engine from <a href="https://github.com/andrewkwatts-maker/EML-Math">eml-math</a>. No duplication, no shim layers.</p>
+  </div>
+</div>
+
+<h2>Optional acceleration</h2>
+<div class="callout">
+  <strong>Rust extension &mdash; <code>eml_spectral_core</code></strong>: batch functions <code>boost_n</code>, <code>octonion_mul_n</code>, <code>geometric_product_n</code>, <code>christoffel_batch_n</code>. Built with PyO3 + Rayon, used automatically when the wheel is installed.
+</div>
+<div class="callout green">
+  <strong>C API &mdash; <code>libeml_spectral</code></strong>: standalone static + shared library with header <code>eml_spectral.h</code>. No Python required &mdash; link from C, C++, or any language with FFI.
+</div>
+
+<h2>Architecture</h2>
+<pre><code>eml-spectral
+&#9500;&#9472;&#9472; pair.py                EMLPair (two-real complex)
+&#9500;&#9472;&#9472; geometric_algebra.py   EMLMultivector (Clifford)
+&#9500;&#9472;&#9472; octonion.py            Octonion + Fano-plane product
+&#9500;&#9472;&#9472; exceptional/           FreudenthalTripleSystem, E7_56, E8_248, E8xE8
+&#9500;&#9472;&#9472; fourvector.py          MinkowskiFourVector
+&#9500;&#9472;&#9472; momentum.py            FourMomentum
+&#9500;&#9472;&#9472; spacetime.py           functional namespace (boost, rapidity, &hellip;)
+&#9500;&#9472;&#9472; metric.py              MetricTensor + 8 factories
+&#9500;&#9472;&#9472; ndim.py                EMLNDVector, E&#8328;, Leech lattices
+&#9500;&#9472;&#9472; discrete.py            planck_delta, lattice_distance, &hellip;
+&#9500;&#9472;&#9472; state.py               EMLState (&rho;, n, &theta;)
+&#9500;&#9472;&#9472; simulation.py          simulate_pulses, verify_conservation
+&#9492;&#9472;&#9472; spectral_flow.py       spectral_flow, racetrack_fixed_point, topology_invariant</code></pre>
+
+</main>
+
+<footer>
+  <p>EML-Spectral v1.0.0 &middot; MIT License &middot; Andrew K Watts 2026</p>
+  <p>Built on <a href="https://github.com/andrewkwatts-maker/EML-Math">eml-math</a> &middot; Based on <a href="https://arxiv.org/html/2603.21852v2">Odrzywolek (2026)</a></p>
+</footer>
+
+</body>
+</html>

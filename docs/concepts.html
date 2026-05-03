@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts &mdash; EML-Spectral</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">EML-Spectral</span>
+  <span class="badge">v1.0.0</span>
+  <a href="index.html">Home</a>
+  <a href="guide.html">Guide</a>
+  <a href="concepts.html">Concepts</a>
+  <a href="api.html">API</a>
+  <a href="https://github.com/andrewkwatts-maker/EML-Spectral">GitHub</a>
+</nav>
+
+<main>
+
+<h1>Mathematical Concepts</h1>
+
+<h2>1. The EML Sheffer operator (recap)</h2>
+
+<p>EML-Spectral is built on the EML Sheffer operator from <code>eml-math</code>. A <em>Sheffer operator</em> is a single binary operation from which all other operations in a system can be derived. For Boolean logic this is NAND; for continuous real-valued mathematics, Odrzywolek (2026) showed that the role is played by:</p>
+
+<pre><code>eml(x, y) = exp(x) &minus; ln(y)</code></pre>
+
+<p>From <code>eml</code> and the constant <code>1</code>, every elementary function (addition, multiplication, sin, cos, &pi;, e) can be expressed as a finite composition. EML-Spectral never re-implements these &mdash; it imports <code>EMLPoint</code> directly from <code>eml-math</code> and layers algebraic, geometric, and dynamical structure on top.</p>
+
+<h2>2. EMLPair as a two-real complex</h2>
+
+<p>Complex numbers ordinarily require either a primitive <code>complex</code> type or two reals plus a sign convention. <code>EMLPair</code> stores two <code>EMLState</code> objects in phase relationship and performs all complex arithmetic without ever invoking Python's <code>complex</code>:</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> EMLPair
+
+z1 = EMLPair.from_values(<span class="num">3.0</span>, <span class="num">4.0</span>)    <span class="cm"># 3 + 4i</span>
+z2 = EMLPair.from_values(<span class="num">1.0</span>, <span class="num">2.0</span>)    <span class="cm"># 1 + 2i</span>
+z3 = z1 * z2                            <span class="cm"># -5 + 10i, all reals</span>
+print(z1.modulus, z1.argument)          <span class="cm"># 5.0, atan2(4, 3)</span></code></pre>
+
+<p>The four canonical rotations <code>{&times;1, &times;i, &times;&minus;1, &times;&minus;i}</code> are the <code>frames()</code> method &mdash; they all share an identical Euclidean delta, mirroring the U(1) phase symmetry of complex numbers.</p>
+
+<h2>3. Spectral flow &Phi;(n, &rho;, &theta;) (Axiom 3)</h2>
+
+<p>The spectral flow <code>&Phi;</code> is the canonical time-evolution of an EML state. It is parameterised by three quantities:</p>
+
+<ul style="margin-left:1.5rem;color:var(--muted);">
+  <li><code>n</code> &mdash; integer flip count (number of completed Mirror-Pulses)</li>
+  <li><code>&rho;</code> &mdash; tension density |T| (continuous, conserved along the orbit)</li>
+  <li><code>&theta;</code> &mdash; phase &isin; [0, 2&pi;)</li>
+</ul>
+
+<p>Each Mirror-Pulse advances <code>(x, y) &rarr; (|y|, exp(x) &minus; ln|y|)</code>; <code>&Phi;</code> wraps the trajectory in (n, &rho;, &theta;) coordinates and exposes it through <code>spectral_flow()</code>.</p>
+
+<h3>The y-safe guard (Axiom 8)</h3>
+
+<p>Because <code>ln(y)</code> is undefined for <code>y &le; 0</code>, the operator silently substitutes <code>|y|</code>. This <em>frame-shift guard</em> keeps the trajectory in the real domain without loss of information &mdash; the sign of <code>y</code> is recovered from the phase &theta;.</p>
+
+<h3>Racetrack fixed points (Axiom 6)</h3>
+
+<p>A <em>racetrack</em> is a periodic orbit of the spectral flow. <code>racetrack_fixed_point()</code> locates the periodic point reached from a given seed; the canonical seed list <code>G2_SEEDS</code> is selected so that the resulting orbit lies inside a G&#8322; symmetric subspace of the EML phase space.</p>
+
+<h3>The (b&#8323;/24)&middot;&chi;<sub>eff</sub> = 144 invariant (Axiom 4)</h3>
+
+<p>Along every conserved orbit, the topological invariant</p>
+
+<pre><code>I = (b&#8323; / 24) &middot; &chi;<sub>eff</sub> = 144</code></pre>
+
+<p>holds exactly. Here <code>b&#8323;</code> is the third Betti number of the orbit's parameter manifold and <code>&chi;<sub>eff</sub></code> is its effective Euler characteristic. The function <code>topology_invariant()</code> evaluates this directly.</p>
+
+<h2>4. Lorentz invariance</h2>
+
+<p>The Minkowski delta of an EML coordinate pair</p>
+
+<pre><code>&Delta;<sub>M</sub>(x, y) = &radic;|exp(2x) &minus; (c &middot; ln y)&sup2;|</code></pre>
+
+<p>is invariant under Lorentz boosts. A boost by rapidity &phi; is a hyperbolic rotation in the <code>(t, s) = (exp(x), ln|y|)</code> plane:</p>
+
+<pre><code>t' = t &middot; cosh(&phi;) &minus; (s/c) &middot; sinh(&phi;)
+s' = s &middot; cosh(&phi;) &minus; t &middot; c &middot; sinh(&phi;)</code></pre>
+
+<p>Rapidities are additive: <code>boost(boost(p, &phi;&#8321;), &phi;&#8322;) = boost(p, &phi;&#8321; + &phi;&#8322;)</code>. The functional API <code>spacetime.boost</code> implements this directly; <code>FourMomentum.boost</code> applies the same transformation in 3+1D, with rest mass conserved to numerical precision.</p>
+
+<h2>5. The exceptional ladder G&#8322; &rarr; F&#8324; &rarr; E&#8326; &rarr; E&#8327; &rarr; E&#8328;</h2>
+
+<p>The exceptional simple Lie algebras have dimensions:</p>
+
+<table>
+  <thead><tr><th>Algebra</th><th>Dimension</th><th>Role in EML-Spectral</th></tr></thead>
+  <tbody>
+    <tr><td>G&#8322;</td><td>14</td><td>automorphism group of the octonions; <code>G2_SEEDS</code></td></tr>
+    <tr><td>F&#8324;</td><td>52</td><td>automorphism group of J&#8323;(O) (exceptional Jordan algebra)</td></tr>
+    <tr><td>E&#8326;</td><td>78</td><td>arises in heterotic compactifications</td></tr>
+    <tr><td>E&#8327;</td><td>133</td><td>fundamental rep is 56-dim &mdash; <code>E7_56</code> + <code>FreudenthalTripleSystem</code></td></tr>
+    <tr><td>E&#8328;</td><td>248</td><td>adjoint rep &mdash; <code>E8_248</code>; heterotic gauge group <code>E8xE8</code></td></tr>
+  </tbody>
+</table>
+
+<p>The <em>Freudenthal magic square</em> arranges these algebras in a 4&times;4 grid indexed by the four normed division algebras (R, C, H, O). The exceptional Jordan algebra <code>J&#8323;(O)</code> &mdash; 3&times;3 Hermitian matrices over the octonions &mdash; sits at one corner. Its automorphism group is F&#8324;; its conformal group is E&#8326;; the Freudenthal triple over it gives the 56-dim representation of E&#8327;, exposed via <code>FreudenthalTripleSystem</code>.</p>
+
+<h2>6. E&#8328; and Leech lattices</h2>
+
+<p>Two extraordinary lattices appear in EML-Spectral:</p>
+
+<ul style="margin-left:1.5rem;color:var(--muted);">
+  <li><strong>E&#8328;</strong> &mdash; 8-dimensional, 240 minimal vectors at norm &radic;2. Densest sphere packing in 8D (Viazovska, 2016).</li>
+  <li><strong>Leech</strong> &mdash; 24-dimensional, 196560 minimal vectors at norm 2. Densest sphere packing in 24D (Cohn et al., 2017).</li>
+</ul>
+
+<p>The kissing numbers (240 in 8D, 196560 in 24D) are tight: they are exactly the maximum number of unit spheres that can simultaneously touch a central one. <code>e8_lattice_points</code> and <code>leech_lattice_points</code> enumerate vectors of these lattices as <code>EMLNDVector</code>s.</p>
+
+<h2>7. Schwarzschild and FLRW metrics</h2>
+
+<p>Two named factories cover the most-used GR metrics. The Schwarzschild line element in EML coordinates (with <code>r = exp(x)</code>) is:</p>
+
+<pre><code>ds&sup2; = &minus;(1 &minus; rs/r) dt&sup2; + (1 &minus; rs/r)<sup>&minus;1</sup> dr&sup2; + r&sup2; d&Omega;&sup2;</code></pre>
+
+<p>Christoffel symbols for Schwarzschild have closed-form expressions; when the Rust extension is installed, <code>MetricTensor.christoffel</code> dispatches to the analytic implementation. The FLRW metric uses a user-supplied scale factor <code>a(t)</code>:</p>
+
+<pre><code>ds&sup2; = &minus;dt&sup2; + a(t)&sup2; (dr&sup2; + r&sup2; d&Omega;&sup2;)</code></pre>
+
+<p>The other six factories cover Calabi&ndash;Yau&#8323;, Klebanov&ndash;Strassler, Heterotic E&#8328;&times;E&#8328;, AdS&#8325;&times;S&#8309;, the G&#8322;-holonomy cone, and flat Minkowski. All return a <code>MetricTensor</code> with the same uniform interface (<code>ds2</code>, <code>proper_time</code>, <code>is_curved</code>, <code>christoffel</code>).</p>
+
+</main>
+
+<footer>
+  <p>EML-Spectral v1.0.0 &middot; MIT License &middot; Andrew K Watts 2026</p>
+</footer>
+
+</body>
+</html>

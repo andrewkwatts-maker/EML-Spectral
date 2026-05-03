@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Reference &mdash; EML-Spectral</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">EML-Spectral</span>
+  <span class="badge">v1.0.0</span>
+  <a href="index.html">Home</a>
+  <a href="guide.html">Guide</a>
+  <a href="concepts.html">Concepts</a>
+  <a href="api.html">API</a>
+  <a href="https://github.com/andrewkwatts-maker/EML-Spectral">GitHub</a>
+</nav>
+
+<main>
+
+<h1>API Reference</h1>
+
+<div class="callout">
+  All public symbols listed below are importable from <code>eml_spectral</code> directly. Submodules (<code>eml_spectral.spacetime</code>, <code>eml_spectral.exceptional</code>, etc.) are also supported for fine-grained access.
+</div>
+
+<h2>Algebras</h2>
+
+<h3>EMLPair</h3>
+<p><code>from eml_spectral import EMLPair</code></p>
+<p>Two-real replacement for <code>complex</code>. Stores real and imaginary <code>EMLState</code> objects so that all arithmetic stays in the EML tree representation.</p>
+<table>
+  <thead><tr><th>Method / Property</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>EMLPair(real_state, imag_state)</code></td><td>Construct from two <code>EMLState</code> objects.</td></tr>
+    <tr><td><code>EMLPair.from_values(r, i)</code></td><td>Construct from a scalar real/imag pair.</td></tr>
+    <tr><td><code>EMLPair.from_polar(r, theta)</code></td><td>Polar form r&middot;e^(i&theta;).</td></tr>
+    <tr><td><code>.real_tension, .imag_tension</code></td><td>Component tensions (floats).</td></tr>
+    <tr><td><code>.modulus</code></td><td>|z| = &radic;(re&sup2; + im&sup2;).</td></tr>
+    <tr><td><code>.argument</code></td><td>Phase &theta; = atan2(im, re).</td></tr>
+    <tr><td><code>.conjugate()</code></td><td>Complex conjugate.</td></tr>
+    <tr><td><code>.rotate_phase(angle)</code></td><td>Rotate by <code>angle</code> radians.</td></tr>
+    <tr><td><code>.frames()</code></td><td>The four canonical rotations (&times;1, &times;i, &times;&minus;1, &times;&minus;i).</td></tr>
+    <tr><td><code>+, -, *, /</code></td><td>Complex arithmetic via EMLPair operators.</td></tr>
+  </tbody>
+</table>
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> EMLPair
+z = EMLPair.from_values(<span class="num">3.0</span>, <span class="num">4.0</span>)
+print(z.modulus)        <span class="cm"># 5.0</span>
+print(z.argument)       <span class="cm"># atan2(4, 3)</span></code></pre>
+
+<h3>EMLMultivector</h3>
+<p><code>from eml_spectral import EMLMultivector</code></p>
+<p>Clifford / geometric algebra multivector with full geometric product <code>ab = a&middot;b + a&and;b</code>, grade projection, reverse, and rotors. Configurable signature.</p>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>EMLMultivector(components, signature)</code></td><td>Build from a list of <code>EMLPoint</code> components.</td></tr>
+    <tr><td><code>* (geometric product)</code></td><td>Full Clifford product. Rust-accelerated for n&le;8 dims.</td></tr>
+    <tr><td><code>.quadratic()</code></td><td>Scalar part of <code>a &times; reverse(a)</code>.</td></tr>
+    <tr><td><code>.reverse()</code></td><td>Grade-reversed multivector.</td></tr>
+    <tr><td><code>.rotor(angle, plane)</code></td><td>Build a rotor exp(angle &times; B/2) in <code>plane = (i, j)</code>.</td></tr>
+    <tr><td><code>.rotate(R)</code></td><td>Apply rotor sandwich <code>R &times; v &times; reverse(R)</code>.</td></tr>
+    <tr><td><code>EMLMultivector.spacetime(components)</code></td><td>Convenience factory for Cl(1, 3).</td></tr>
+  </tbody>
+</table>
+
+<h3>Octonion</h3>
+<p><code>from eml_spectral import Octonion, basis_octonion</code></p>
+<p>Eight-dimensional non-associative division algebra. Multiplication uses the Fano-plane lookup table.</p>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>Octonion(c0, c1, &hellip;, c7)</code></td><td>Construct from eight real components.</td></tr>
+    <tr><td><code>basis_octonion(i)</code></td><td>i-th basis octonion (i &isin; 0..7).</td></tr>
+    <tr><td><code>* (Fano product)</code></td><td>Non-associative multiplication. Rust-accelerated.</td></tr>
+    <tr><td><code>.norm()</code></td><td>&radic;&sum;c<sub>i</sub>&sup2;. Multiplicative.</td></tr>
+    <tr><td><code>.conjugate()</code></td><td>Negate the imaginary components.</td></tr>
+    <tr><td><code>.component(i)</code></td><td>Read the i-th coefficient.</td></tr>
+    <tr><td><code>.to_ndvector()</code></td><td>Convert to an <code>EMLNDVector</code>.</td></tr>
+  </tbody>
+</table>
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> basis_octonion
+e1, e2 = basis_octonion(<span class="num">1</span>), basis_octonion(<span class="num">2</span>)
+print((e1 * e2).component(<span class="num">4</span>))   <span class="cm"># 1.0  (Fano: e1*e2 = e4)</span>
+print((e2 * e1).component(<span class="num">4</span>))   <span class="cm"># -1.0 (anticommutative)</span></code></pre>
+
+<h3>FreudenthalTripleSystem</h3>
+<p><code>from eml_spectral import FreudenthalTripleSystem</code></p>
+<p>Implements the Freudenthal triple <code>F = (J, &phi;, q)</code> over the exceptional Jordan algebra J&#8323;(O). Underpins E&#8327;.</p>
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> FreudenthalTripleSystem
+F = FreudenthalTripleSystem()
+print(F.dim)    <span class="cm"># 56 — the fundamental representation of E7</span></code></pre>
+
+<h3>E7_56</h3>
+<p><code>from eml_spectral import E7_56</code></p>
+<p>The 56-dimensional fundamental representation of E&#8327;.</p>
+
+<h3>E8_248</h3>
+<p><code>from eml_spectral import E8_248</code></p>
+<p>The 248-dimensional adjoint representation of E&#8328;.</p>
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> E8_248
+e8 = E8_248()
+print(e8.dim)    <span class="cm"># 248</span></code></pre>
+
+<h3>E8xE8</h3>
+<p><code>from eml_spectral import E8xE8</code></p>
+<p>Direct product E&#8328; &times; E&#8328; &mdash; the heterotic string gauge group (dim 496).</p>
+
+<h2>Spacetime</h2>
+
+<h3>MinkowskiFourVector</h3>
+<p><code>from eml_spectral import MinkowskiFourVector</code></p>
+<p>Four-vector with signature (&minus;, +, +, +). Carries Lorentz boost and norm methods.</p>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>MinkowskiFourVector(t, x, y, z)</code></td><td>Construct from four reals.</td></tr>
+    <tr><td><code>.minkowski_norm()</code></td><td>&radic;|t&sup2; &minus; x&sup2; &minus; y&sup2; &minus; z&sup2;|.</td></tr>
+    <tr><td><code>.boost(phi, direction)</code></td><td>Boost by rapidity &phi; along <code>direction</code> (1, 2, 3).</td></tr>
+    <tr><td><code>.four_momentum(mass)</code></td><td>Convert to a <code>FourMomentum</code> with given rest mass.</td></tr>
+  </tbody>
+</table>
+
+<h3>FourMomentum</h3>
+<p><code>from eml_spectral import FourMomentum</code></p>
+<p>Relativistic 4-momentum (E/c, p<sub>x</sub>, p<sub>y</sub>, p<sub>z</sub>).</p>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>FourMomentum(E, px, py, pz, c)</code></td><td>Construct directly.</td></tr>
+    <tr><td><code>FourMomentum.from_mass_velocity(m, v, c)</code></td><td>Build from rest mass + velocity.</td></tr>
+    <tr><td><code>.energy, .momentum, .mass</code></td><td>Component accessors. <code>.mass</code> is Lorentz-invariant.</td></tr>
+    <tr><td><code>.gamma()</code></td><td>Lorentz factor &gamma; = 1/&radic;(1&minus;v&sup2;/c&sup2;).</td></tr>
+    <tr><td><code>.boost(phi)</code></td><td>Lorentz boost by rapidity.</td></tr>
+  </tbody>
+</table>
+
+<h3>spacetime (functional namespace)</h3>
+<p><code>from eml_spectral import spacetime</code></p>
+<p>Stateless functions operating on <code>EMLPoint</code>s.</p>
+<table>
+  <thead><tr><th>Function</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>spacetime.minkowski_delta(p, signature, c)</code></td><td>&Delta;<sub>M</sub> = &radic;|exp(2x) &minus; (c&middot;ln y)&sup2;|.</td></tr>
+    <tr><td><code>spacetime.euclidean_delta(p)</code></td><td>&radic;(exp(2x) + (ln y)&sup2;).</td></tr>
+    <tr><td><code>spacetime.rapidity(p)</code></td><td>atanh(ln(y) / exp(x)). Raises for spacelike.</td></tr>
+    <tr><td><code>spacetime.boost(p, phi, c)</code></td><td>Lorentz boost preserving &Delta;<sub>M</sub>.</td></tr>
+    <tr><td><code>spacetime.light_cone_type(p, c)</code></td><td>"timelike" / "spacelike" / "lightlike".</td></tr>
+    <tr><td><code>spacetime.light_cone_coordinates(p, c)</code></td><td>Null coordinates (t+s, t&minus;s).</td></tr>
+  </tbody>
+</table>
+<pre><code><span class="kw">from</span> eml_math <span class="kw">import</span> EMLPoint
+<span class="kw">from</span> eml_spectral <span class="kw">import</span> spacetime
+
+p = EMLPoint(<span class="num">2.0</span>, <span class="num">2.71828</span>)
+print(spacetime.light_cone_type(p))                          <span class="cm"># "timelike"</span>
+print(spacetime.minkowski_delta(spacetime.boost(p, <span class="num">0.5</span>)))   <span class="cm"># invariant</span></code></pre>
+
+<h2>Metrics</h2>
+
+<h3>MetricTensor</h3>
+<p><code>from eml_spectral import MetricTensor</code></p>
+<p>General curved-spacetime metric. Construct from a callable, or use one of eight named factories.</p>
+<table>
+  <thead><tr><th>Method / Factory</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>MetricTensor(g, dim=2)</code></td><td>Custom metric: <code>g(EMLPoint) &rarr; [[float]]</code>.</td></tr>
+    <tr><td><code>.ds2(p, dx, dy)</code></td><td>Line element g<sub>&mu;&nu;</sub> dx<sup>&mu;</sup> dx<sup>&nu;</sup>.</td></tr>
+    <tr><td><code>.proper_time(p, dx, dy)</code></td><td>&radic;|ds&sup2;|.</td></tr>
+    <tr><td><code>.is_curved(p, tol)</code></td><td>True if the metric differs from flat Minkowski at <code>p</code>.</td></tr>
+    <tr><td><code>.christoffel(lam, mu, nu, p, h)</code></td><td>Numeric &Gamma;<sup>&lambda;</sup><sub>&mu;&nu;</sub>. Rust-accelerated for Schwarzschild.</td></tr>
+    <tr><td><code>MetricTensor.flat()</code></td><td>Minkowski (+, &minus;).</td></tr>
+    <tr><td><code>MetricTensor.schwarzschild(rs=2.0)</code></td><td>Schwarzschild geometry.</td></tr>
+    <tr><td><code>MetricTensor.flrw(scale_factor_a, k=0)</code></td><td>FLRW cosmological metric.</td></tr>
+    <tr><td><code>MetricTensor.calabi_yau_3(kahler_potential)</code></td><td>K&auml;hler metric on a CY 3-fold.</td></tr>
+    <tr><td><code>MetricTensor.klebanov_strassler(gsM=0.1)</code></td><td>Warped deformed conifold.</td></tr>
+    <tr><td><code>MetricTensor.heterotic_e8x8(radius=1.0)</code></td><td>E&#8328;&times;E&#8328; heterotic compactification.</td></tr>
+    <tr><td><code>MetricTensor.ads5_x_s5(L=1.0)</code></td><td>AdS&#8325;&times;S&#8309; in Poincar&eacute; coords.</td></tr>
+    <tr><td><code>MetricTensor.g2_holonomy()</code></td><td>Bryant&ndash;Salamon G&#8322;-holonomy cone.</td></tr>
+  </tbody>
+</table>
+
+<h2>Lattices</h2>
+
+<h3>EMLNDVector</h3>
+<p><code>from eml_spectral import EMLNDVector</code></p>
+<p>N-dimensional EML coordinate vector.</p>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>EMLNDVector(coords)</code></td><td>List of N <code>EMLPoint</code>s or floats.</td></tr>
+    <tr><td><code>.n</code></td><td>Dimension.</td></tr>
+    <tr><td><code>.coords</code></td><td>The component list.</td></tr>
+    <tr><td><code>.euclidean_norm()</code></td><td>&radic;&sum;v<sub>i</sub>&sup2;.</td></tr>
+    <tr><td><code>.minkowski_norm_nd(signature)</code></td><td>N-dimensional Minkowski-style norm.</td></tr>
+  </tbody>
+</table>
+
+<h3>e8_lattice_points</h3>
+<p><code>e8_lattice_points(n=10, scale=1.0) &rarr; list[EMLNDVector]</code></p>
+<p>Up to 240 root vectors of E&#8328;.</p>
+
+<h3>leech_lattice_points</h3>
+<p><code>leech_lattice_points(n=5, scale=1.0) &rarr; list[EMLNDVector]</code></p>
+<p>Vectors of the 24-dimensional Leech lattice.</p>
+
+<h3>planck_delta</h3>
+<p><code>planck_delta(point, D=PLANCK_D) &rarr; float</code></p>
+<p>Quantised Minkowski delta at the Planck scale.</p>
+
+<h3>lattice_distance</h3>
+<p><code>lattice_distance(p1, p2, D) &rarr; float</code></p>
+<p>Planck-quantised distance between two EMLPoints.</p>
+
+<h3>is_lattice_neighbor</h3>
+<p><code>is_lattice_neighbor(p1, p2, D) &rarr; bool</code></p>
+<p>True if <code>p1</code> and <code>p2</code> are adjacent on the Planck lattice.</p>
+
+<h2>Spectral dynamics</h2>
+
+<h3>spectral_flow</h3>
+<p><code>spectral_flow(rho, n, theta) &rarr; EMLState</code></p>
+<p>The flow &Phi;(n, &rho;, &theta;) of Axiom 3. Drives the Mirror-Pulse trajectory at fixed tension density.</p>
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> spectral_flow
+state = spectral_flow(rho=<span class="num">1.0</span>, n=<span class="num">4</span>, theta=<span class="num">0.0</span>)
+print(state.rho, state.flip_count, state.phase)</code></pre>
+
+<h3>racetrack_fixed_point</h3>
+<p><code>racetrack_fixed_point(seed, max_iter=10000, tol=1e-9) &rarr; EMLState | None</code></p>
+<p>Locate the periodic fixed point of the racetrack flow (Axiom 6) starting from <code>seed</code>.</p>
+
+<h3>topology_invariant</h3>
+<p><code>topology_invariant(b3=24, chi_eff=144) &rarr; float</code></p>
+<p>The topological invariant (b&#8323; / 24) &middot; &chi;<sub>eff</sub>. Returns 144 by Axiom 4.</p>
+
+<h3>G2_SEEDS</h3>
+<p><code>G2_SEEDS: tuple</code> &mdash; canonical seed values for the G&#8322; orbit used by <code>racetrack_fixed_point</code>.</p>
+
+<h3>EMLState</h3>
+<p><code>from eml_spectral import EMLState</code></p>
+<p>Full &Phi;(n, &rho;, &theta;) state: an <code>EMLPoint</code> plus integer flip count <code>n</code> and phase &theta;.</p>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>EMLState(point, n=0, theta=0.0)</code></td><td>Construct.</td></tr>
+    <tr><td><code>EMLState.from_point(point, n, theta)</code></td><td>Factory classmethod.</td></tr>
+    <tr><td><code>.rho</code></td><td>Tension density |T|.</td></tr>
+    <tr><td><code>.flip_count</code></td><td>Number of completed Mirror-Pulses.</td></tr>
+    <tr><td><code>.phase</code></td><td>Phase &theta; &isin; [0, 2&pi;).</td></tr>
+    <tr><td><code>.mirror_pulse()</code></td><td>One pulse step.</td></tr>
+    <tr><td><code>.three_one_flip()</code></td><td>4-pulse 3+1 cycle.</td></tr>
+    <tr><td><code>.geodesic_step(metric, dtau)</code></td><td>Euler geodesic step under a <code>MetricTensor</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3>simulate_pulses</h3>
+<p><code>simulate_pulses(state, n_pulses) &rarr; list[EMLState]</code></p>
+<p>Run <code>n_pulses</code> Mirror-Pulses and return the trajectory. Aliased as <code>iterate</code>.</p>
+
+<h3>simulate_flips</h3>
+<p><code>simulate_flips(state, n_flips) &rarr; list[EMLState]</code></p>
+<p>Run <code>n_flips</code> 3+1 cycles (4 pulses each).</p>
+
+<h3>quantized_trajectory</h3>
+<p><code>quantized_trajectory(state, n, D) &rarr; list[EMLState]</code></p>
+<p>Discrete-mode trajectory at quantization step <code>D</code>.</p>
+
+<h3>tension_series / rho_series / phase_series</h3>
+<p><code>tension_series(traj) &rarr; list[float]</code> (and similarly for <code>rho_series</code>, <code>phase_series</code>) &mdash; extract scalar series from a trajectory.</p>
+
+<h3>verify_conservation</h3>
+<p><code>verify_conservation(traj, tol=1e-9) &rarr; bool</code></p>
+<p>Check Axiom 10: T + ln(y) = exp(x) at every step.</p>
+
+<h3>frame_shift_count</h3>
+<p><code>frame_shift_count(traj) &rarr; int</code></p>
+<p>Number of times the Axiom-8 frame-shift guard fired along the trajectory.</p>
+
+<h3>find_resonance_bands</h3>
+<p><code>find_resonance_bands(traj, tol=1e-3) &rarr; list[tuple]</code></p>
+<p>Detect bands where consecutive states satisfy Axiom 14 (matching tension ratios).</p>
+
+<h2>Optional Rust acceleration</h2>
+<p><code>from eml_spectral import eml_spectral_core</code> (when the wheel ships the extension)</p>
+<table>
+  <thead><tr><th>Function</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>boost_n(points, phis, c)</code></td><td>Parallel Lorentz boost of N points (Rayon).</td></tr>
+    <tr><td><code>octonion_mul_n(a_batch, b_batch)</code></td><td>Parallel Fano-plane octonion multiplication.</td></tr>
+    <tr><td><code>geometric_product_n(a_batch, b_batch, sig)</code></td><td>Parallel Clifford geometric products.</td></tr>
+    <tr><td><code>christoffel_batch_n(points, lam, mu, nu, rs)</code></td><td>Parallel Schwarzschild &Gamma;.</td></tr>
+  </tbody>
+</table>
+
+<h2>Optional C API</h2>
+<p>Header: <code>c_api/eml_spectral.h</code> &middot; Library: <code>libeml_spectral.a</code> / <code>libeml_spectral.so</code> / <code>eml_spectral.dll</code></p>
+<table>
+  <thead><tr><th>C function</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>eml_spectral_boost(x, y, phi, c, *ox, *oy)</code></td><td>Lorentz boost on a single EMLPoint.</td></tr>
+    <tr><td><code>eml_spectral_octonion_mul(a[8], b[8], out[8])</code></td><td>Fano-plane product.</td></tr>
+    <tr><td><code>eml_spectral_geometric_product(a, b, sig, n, out)</code></td><td>Clifford geometric product.</td></tr>
+    <tr><td><code>eml_spectral_schwarzschild_christoffel(lam, mu, nu, r, rs)</code></td><td>Analytic &Gamma; for Schwarzschild.</td></tr>
+    <tr><td><code>eml_spectral_flow(rho, n, theta, *out_rho, *out_theta)</code></td><td>One step of &Phi;(n, &rho;, &theta;).</td></tr>
+  </tbody>
+</table>
+
+</main>
+
+<footer>
+  <p>EML-Spectral v1.0.0 &middot; MIT License &middot; Andrew K Watts 2026</p>
+</footer>
+
+</body>
+</html>

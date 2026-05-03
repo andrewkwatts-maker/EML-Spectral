@@ -1,0 +1,9 @@
+[package]
+name = "eml_spectral_c_api"
+version = "1.0.0"
+edition = "2021"
+description = "C-compatible API for the eml-spectral library."
+
+[lib]
+name = "eml_spectral"
+crate-type = ["staticlib", "cdylib"]

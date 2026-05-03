@@ -1,0 +1,3 @@
+[workspace]
+members = ["rust/eml_spectral_core", "c_api"]
+resolver = "2"

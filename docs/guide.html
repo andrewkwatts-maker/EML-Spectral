@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide &mdash; EML-Spectral</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">EML-Spectral</span>
+  <span class="badge">v1.0.0</span>
+  <a href="index.html">Home</a>
+  <a href="guide.html">Guide</a>
+  <a href="concepts.html">Concepts</a>
+  <a href="api.html">API</a>
+  <a href="https://github.com/andrewkwatts-maker/EML-Spectral">GitHub</a>
+</nav>
+
+<main>
+
+<h1>Getting Started Guide</h1>
+
+<h2>1. Installation</h2>
+
+<p>EML-Spectral is a pure-Python package built on top of <a href="https://github.com/andrewkwatts-maker/EML-Math">eml-math</a>. The base install pulls in only <code>eml-math</code> as a runtime dependency.</p>
+
+<pre><code>pip install eml-spectral         <span class="cm"># core library</span>
+pip install eml-spectral[ext]    <span class="cm"># + NumPy and SymPy</span></code></pre>
+
+<div class="callout">
+  Pre-built wheels target Python 3.10&ndash;3.13 on Windows, macOS, and Linux. The Rust extension <code>eml_spectral_core</code> is bundled when available; if not, every operation has a pure-Python fallback.
+</div>
+
+<h2>2. Hello, Spectral</h2>
+
+<p>The single-line tour: build a two-real complex pair, drive the spectral flow, inspect the resulting state.</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> EMLPair, spectral_flow
+
+z = EMLPair.from_values(<span class="num">3.0</span>, <span class="num">4.0</span>)
+print(z.modulus, z.argument)        <span class="cm"># 5.0,  atan2(4, 3)</span>
+
+state = spectral_flow(rho=<span class="num">1.0</span>, n=<span class="num">4</span>, theta=<span class="num">0.0</span>)
+print(state.rho, state.flip_count, state.phase)</code></pre>
+
+<p>All <code>EMLPair</code> arithmetic is real-valued: there is no Python <code>complex</code> anywhere in the call graph.</p>
+
+<h2>3. Spacetime &mdash; boosts and Lorentz invariance</h2>
+
+<p>Use the functional <code>spacetime</code> namespace to apply Lorentz boosts on <code>EMLPoint</code>s. The Minkowski delta &Delta;<sub>M</sub> is invariant by construction.</p>
+
+<pre><code><span class="kw">from</span> eml_math <span class="kw">import</span> EMLPoint
+<span class="kw">from</span> eml_spectral <span class="kw">import</span> spacetime
+
+p  = EMLPoint(<span class="num">2.0</span>, <span class="num">2.71828</span>)
+print(spacetime.light_cone_type(p))               <span class="cm"># "timelike"</span>
+print(spacetime.rapidity(p))                       <span class="cm"># atanh(1/e^2)</span>
+
+p2 = spacetime.boost(p, phi=<span class="num">0.693</span>)
+print(abs(spacetime.minkowski_delta(p) - spacetime.minkowski_delta(p2)) < <span class="num">1e-10</span>)
+<span class="cm"># True — Δ_M is conserved</span></code></pre>
+
+<p>For 3+1D vectors and four-momenta, use the <code>MinkowskiFourVector</code> and <code>FourMomentum</code> classes. Both expose <code>.boost(phi)</code> and preserve the rest mass.</p>
+
+<h2>4. General relativity &mdash; Schwarzschild</h2>
+
+<p>Build a <code>MetricTensor</code> via one of eight named factories. Christoffel symbols are computed numerically by default, with an analytic Rust fast path for Schwarzschild.</p>
+
+<pre><code><span class="kw">from</span> eml_math <span class="kw">import</span> EMLPoint
+<span class="kw">from</span> eml_spectral <span class="kw">import</span> MetricTensor, EMLState
+
+g = MetricTensor.schwarzschild(rs=<span class="num">2.0</span>)
+p = EMLPoint(<span class="num">3.0</span>, <span class="num">1.0</span>)            <span class="cm"># r = exp(3) ≈ 20 ≫ rs=2</span>
+
+print(g.is_curved(p))                  <span class="cm"># True</span>
+print(g.christoffel(<span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>, p))      <span class="cm"># Γ⁰_{01}</span>
+
+state = EMLState.from_point(p)
+<span class="kw">for</span> _ <span class="kw">in</span> range(<span class="num">50</span>):
+    state = state.geodesic_step(g, dtau=<span class="num">0.005</span>)</code></pre>
+
+<p>FLRW cosmology and the other six factories follow the same pattern &mdash; just swap the constructor.</p>
+
+<h2>5. Clifford rotor in 2D</h2>
+
+<p><code>EMLMultivector</code> implements the full geometric product. A rotor is a unit even-grade element; sandwiching <code>v &rarr; R v R&#771;</code> rotates <code>v</code>.</p>
+
+<pre><code><span class="kw">from</span> eml_math <span class="kw">import</span> EMLPoint
+<span class="kw">from</span> eml_spectral <span class="kw">import</span> EMLMultivector
+<span class="kw">import</span> math
+
+<span class="kw">def</span> <span class="fn">vec2</span>(a, b, sig=(<span class="num">1</span>, <span class="num">1</span>)):
+    comps = [EMLPoint(<span class="num">0.0</span>, <span class="num">1.0</span>)] * <span class="num">4</span>
+    comps[<span class="num">1</span>] = EMLPoint(a, <span class="num">1.0</span>)
+    comps[<span class="num">2</span>] = EMLPoint(b, <span class="num">1.0</span>)
+    <span class="kw">return</span> EMLMultivector(comps, signature=sig)
+
+v = vec2(<span class="num">3.0</span>, <span class="num">4.0</span>)
+print(v.quadratic())                                <span class="cm"># 25</span>
+
+R = v.rotor(math.pi / <span class="num">4</span>, plane=(<span class="num">0</span>, <span class="num">1</span>))
+v_rot = v.rotate(R)
+print(abs(v_rot.quadratic() - v.quadratic()) < <span class="num">1e-8</span>)   <span class="cm"># True</span></code></pre>
+
+<h2>6. Octonions &mdash; the Fano product</h2>
+
+<p>Octonion multiplication is non-associative and non-commutative, but its norm is multiplicative. The product is encoded by the Fano plane: <code>e<sub>1</sub> e<sub>2</sub> = e<sub>4</sub></code>, <code>e<sub>2</sub> e<sub>3</sub> = e<sub>5</sub></code>, etc.</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> basis_octonion
+
+e1, e2, e4 = basis_octonion(<span class="num">1</span>), basis_octonion(<span class="num">2</span>), basis_octonion(<span class="num">4</span>)
+
+print((e1 * e2).component(<span class="num">4</span>))     <span class="cm"># 1.0</span>
+print((e2 * e1).component(<span class="num">4</span>))     <span class="cm"># -1.0  (anticommutative)</span>
+
+<span class="cm"># Multiplicative norm: |a b| = |a| |b|</span>
+print(abs((e1 * e2).norm() - e1.norm() * e2.norm()) < <span class="num">1e-9</span>)  <span class="cm"># True</span></code></pre>
+
+<h2>7. The exceptional ladder G&#8322; &rarr; F&#8324; &rarr; E&#8326; &rarr; E&#8327; &rarr; E&#8328;</h2>
+
+<p>The exceptional Lie algebras form a tower whose dimensions are 14, 52, 78, 133, 248. EML-Spectral exposes the two largest representations directly, plus the Freudenthal triple system that connects them.</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> FreudenthalTripleSystem, E7_56, E8_248, E8xE8
+
+F = FreudenthalTripleSystem()
+print(F.dim)                <span class="cm"># 56  (fundamental of E7)</span>
+
+e7 = E7_56()
+e8 = E8_248()
+print(e7.dim, e8.dim)       <span class="cm"># 56, 248</span>
+
+heterotic = E8xE8()
+print(heterotic.dim)        <span class="cm"># 496</span></code></pre>
+
+<h2>8. E&#8328; and Leech lattices</h2>
+
+<p>The E&#8328; lattice has 240 minimal vectors at norm &radic;2 (the kissing number in 8 dimensions). The Leech lattice in 24 dimensions has kissing number 196560 and gives the densest known sphere packing in that dimension.</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> e8_lattice_points, leech_lattice_points
+
+roots = e8_lattice_points(n=<span class="num">240</span>)         <span class="cm"># up to 240 root vectors</span>
+print(len(roots))
+
+leech = leech_lattice_points(n=<span class="num">10</span>)         <span class="cm"># first 10 Leech vectors</span>
+print([v.euclidean_norm() <span class="kw">for</span> v <span class="kw">in</span> leech[:<span class="num">3</span>]])</code></pre>
+
+<h2>9. Spectral flow and racetrack fixed points</h2>
+
+<p>The flow &Phi;(n, &rho;, &theta;) drives a Mirror-Pulse trajectory at fixed tension density. Periodic orbits &mdash; "racetracks" &mdash; are the fixed points of this flow under Axiom 6, and the topological invariant (b&#8323; / 24) &middot; &chi;<sub>eff</sub> equals 144 along every conserved orbit.</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> (
+    spectral_flow, racetrack_fixed_point, topology_invariant, G2_SEEDS,
+)
+
+state = spectral_flow(rho=<span class="num">1.0</span>, n=<span class="num">4</span>, theta=<span class="num">0.0</span>)
+print(state.rho, state.flip_count)
+
+fp = racetrack_fixed_point(seed=G2_SEEDS[<span class="num">0</span>])
+print(fp)                                  <span class="cm"># the periodic fixed point</span>
+
+print(topology_invariant())                <span class="cm"># 144</span></code></pre>
+
+<h2>10. Optional Rust acceleration</h2>
+
+<p>When the <code>eml_spectral_core</code> extension is installed, batch operations dispatch to a Rayon-parallel Rust backend. Speed-ups are roughly 3&times; for boosts, 2&times; for octonion products, and up to 9&times; for low-dimensional Clifford products.</p>
+
+<pre><code><span class="kw">from</span> eml_spectral <span class="kw">import</span> eml_spectral_core
+<span class="kw">import</span> math
+
+N = <span class="num">10_000</span>
+points = [(<span class="num">1.0</span>, math.e)] * N
+phis   = [<span class="num">0.5</span>] * N
+
+boosted = eml_spectral_core.boost_n(points, phis, c=<span class="num">1.0</span>)        <span class="cm"># parallel</span>
+gammas  = eml_spectral_core.christoffel_batch_n(points, <span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>, rs=<span class="num">2.0</span>)</code></pre>
+
+<div class="callout warn">
+  The Rust extension is optional: if it is not installed, every batch helper falls back to a pure-Python loop. Production code can rely on the fallback.
+</div>
+
+<h2>11. Optional C API</h2>
+
+<p>The standalone library <code>libeml_spectral</code> exposes the hot-path operations to C, C++, and any language with FFI. Build with <code>cargo build --release -p eml_spectral_c_api</code>, then link against <code>-leml_spectral</code>.</p>
+
+<pre><code><span class="cm">// In your C program:</span>
+<span class="kw">#include</span> <span class="st">"eml_spectral.h"</span>
+<span class="kw">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+
+<span class="kw">int</span> <span class="fn">main</span>(<span class="kw">void</span>) {
+    <span class="kw">double</span> ox, oy;
+    <span class="fn">eml_spectral_boost</span>(<span class="num">1.0</span>, <span class="num">2.718</span>, <span class="num">0.5</span>, <span class="num">1.0</span>, &amp;ox, &amp;oy);
+
+    <span class="kw">double</span> a[<span class="num">8</span>] = {<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>};
+    <span class="kw">double</span> b[<span class="num">8</span>] = {<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>};
+    <span class="kw">double</span> r[<span class="num">8</span>];
+    <span class="fn">eml_spectral_octonion_mul</span>(a, b, r);   <span class="cm">// r[4] == 1.0</span>
+    <span class="fn">printf</span>(<span class="st">"e1*e2 = e%d\n"</span>, <span class="num">4</span>);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</code></pre>
+
+<pre><code><span class="cm"># Compile</span>
+gcc main.c -Ic_api -Ltarget/release -leml_spectral -lm -o main
+g++ main.cpp -Ic_api -Ltarget/release -leml_spectral -lm -o main</code></pre>
+
+</main>
+
+<footer>
+  <p>EML-Spectral v1.0.0 &middot; MIT License &middot; Andrew K Watts 2026</p>
+</footer>
+
+</body>
+</html>

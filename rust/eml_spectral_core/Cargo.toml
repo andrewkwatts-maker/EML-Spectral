@@ -1,0 +1,12 @@
+[package]
+name = "eml_spectral_core"
+version = "1.0.0"
+edition = "2021"
+
+[lib]
+name = "eml_spectral_core"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+rayon = "1.10"
