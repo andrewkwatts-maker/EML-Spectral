@@ -12,6 +12,12 @@ mod spectral;
 mod lattice;
 mod clifford;
 
+// Optional Arithma symbolic-substrate bridge. Only available when consumed via
+// git submodule path-dep (the engine workspace) — never as a PyPI dep. See
+// plan §F.11 for the cross-library `with-arithma` pattern.
+#[cfg(feature = "with-arithma")]
+pub mod arithma_bridge;
+
 use octonion::{octonion_mul, octonion_mul_n, octonion_norm_n};
 use spectral::{spectral_flow_step, spectral_flow_n, spectral_flow_batch};
 use lattice::{e8_norms_squared_n, e8_min_norm_squared, leech_min_norm_squared};

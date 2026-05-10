@@ -1,12 +1,20 @@
 [package]
 name = "eml_spectral_core"
-version = "1.0.0"
+version = "1.4.0"
 edition = "2021"
 
 [lib]
 name = "eml_spectral_core"
 crate-type = ["cdylib", "lib"]
 
+[features]
+default = []
+# Optional Arithma symbolic-substrate bridge. ONLY available when consumed via
+# git submodule path-dep (the engine workspace) — never as a PyPI dep.
+# See plan §F.11 for the cross-library `with-arithma` pattern.
+with-arithma = ["arithma_core"]
+
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
 rayon = "1.10"
+arithma_core = { path = "../../../Arithma/rust/arithma_core", optional = true }
