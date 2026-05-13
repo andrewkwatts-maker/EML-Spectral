@@ -12,11 +12,11 @@ mod spectral;
 mod lattice;
 mod clifford;
 
-// Optional Arithma symbolic-substrate bridge. Only available when consumed via
+// Optional Arithmos symbolic-substrate bridge. Only available when consumed via
 // git submodule path-dep (the engine workspace) — never as a PyPI dep. See
-// plan §F.11 for the cross-library `with-arithma` pattern.
-#[cfg(feature = "with-arithma")]
-pub mod arithma_bridge;
+// plan §F.11 for the cross-library `with-arithmos` pattern.
+#[cfg(feature = "with-arithmos")]
+pub mod arithmos_bridge;
 
 use octonion::{octonion_mul, octonion_mul_n, octonion_norm_n};
 use spectral::{spectral_flow_step, spectral_flow_n, spectral_flow_batch};

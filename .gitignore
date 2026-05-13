@@ -24,3 +24,6 @@ target/
 *.lib
 *.exp
 *.pdb
+CLAUDE.md
+.claude/
+Cargo.lock

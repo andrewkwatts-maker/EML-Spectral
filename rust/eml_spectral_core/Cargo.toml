@@ -9,12 +9,12 @@ crate-type = ["cdylib", "lib"]
 
 [features]
 default = []
-# Optional Arithma symbolic-substrate bridge. ONLY available when consumed via
+# Optional Arithmos symbolic-substrate bridge. ONLY available when consumed via
 # git submodule path-dep (the engine workspace) — never as a PyPI dep.
-# See plan §F.11 for the cross-library `with-arithma` pattern.
-with-arithma = ["arithma_core"]
+# See plan §F.11 for the cross-library `with-arithmos` pattern.
+with-arithmos = ["arithmos_core"]
 
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
 rayon = "1.10"
-arithma_core = { path = "../../../Arithma/rust/arithma_core", optional = true }
+arithmos_core = { path = "../../../Arithmos/rust/arithmos_core", optional = true }
