@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eml-spectral"
-version = "1.4.0"
+version = "2.0.0a0"
 description = "EML-tree representations of Clifford algebras, octonions, exceptional algebras (E7/E8/Freudenthal), named GR metrics, lattices, and Lorentz-invariant ops. Built on eml-math."
 readme = "README.md"
 license = { file = "LICENSE" }
