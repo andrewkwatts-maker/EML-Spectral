@@ -1,5 +1,6 @@
 //! Octonion (Cayley-Dickson) multiplication via the Fano-plane table.
 
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
@@ -41,14 +42,14 @@ fn _mul(a: &[f64], b: &[f64]) -> [f64; 8] {
 }
 
 /// Multiply two octonions. Inputs are 8-element float vectors.
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn octonion_mul(a: Vec<f64>, b: Vec<f64>) -> Vec<f64> {
     let r = _mul(&a, &b);
     r.to_vec()
 }
 
 /// Batch octonion multiply, Rayon-parallel.
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn octonion_mul_n(a_batch: Vec<Vec<f64>>, b_batch: Vec<Vec<f64>>) -> Vec<Vec<f64>> {
     a_batch
         .par_iter()
@@ -58,7 +59,7 @@ pub fn octonion_mul_n(a_batch: Vec<Vec<f64>>, b_batch: Vec<Vec<f64>>) -> Vec<Vec
 }
 
 /// Batch octonion norm, Rayon-parallel.
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn octonion_norm_n(batch: Vec<Vec<f64>>) -> Vec<f64> {
     batch
         .par_iter()

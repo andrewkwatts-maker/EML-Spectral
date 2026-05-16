@@ -8,13 +8,16 @@ name = "eml_spectral_core"
 crate-type = ["cdylib", "lib"]
 
 [features]
+# PyPI / maturin builds: enable python so the extension module is built.
+# Engine workspace: python is NOT in default so pyo3 is never pulled in.
 default = []
+python = ["pyo3"]
 # Optional Arithmos symbolic-substrate bridge. ONLY available when consumed via
 # git submodule path-dep (the engine workspace) — never as a PyPI dep.
 # See plan §F.11 for the cross-library `with-arithmos` pattern.
 with-arithmos = ["arithmos_core"]
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module"] }
+pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
 rayon = "1.10"
 arithmos_core = { path = "../../../Arithmos/rust/arithmos_core", optional = true }

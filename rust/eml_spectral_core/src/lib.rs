@@ -4,6 +4,7 @@
 //! always work; this module is opt-in and accessed via
 //! `from eml_spectral import eml_spectral_core as _core`.
 
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
@@ -24,11 +25,12 @@ use lattice::{e8_norms_squared_n, e8_min_norm_squared, leech_min_norm_squared};
 use clifford::geometric_product_n;
 
 /// Vector-add helper exposed for sanity checks (Rayon-parallel).
-#[pyfunction]
-fn add_n(a: Vec<f64>, b: Vec<f64>) -> Vec<f64> {
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn add_n(a: Vec<f64>, b: Vec<f64>) -> Vec<f64> {
     a.par_iter().zip(b.par_iter()).map(|(x, y)| x + y).collect()
 }
 
+#[cfg(feature = "python")]
 #[pymodule]
 fn eml_spectral_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(octonion_mul, m)?)?;

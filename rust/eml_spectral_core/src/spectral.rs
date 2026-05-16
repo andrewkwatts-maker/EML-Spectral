@@ -4,6 +4,7 @@
 //! where y_safe = max(|y|, 1e-300)  (Axiom 8 frame-shift guard)
 //! and   xv_safe(x) = ln(x) when x > 709.78 (overflow guard).
 
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
@@ -28,13 +29,13 @@ fn step(x: f64, y: f64) -> (f64, f64) {
 }
 
 /// One Φ step: returns (x', y').
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn spectral_flow_step(x: f64, y: f64) -> (f64, f64) {
     step(x, y)
 }
 
 /// Generate a length-(n_steps+1) trajectory starting from (x0, y0).
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn spectral_flow_n(x0: f64, y0: f64, n_steps: usize) -> Vec<(f64, f64)> {
     let mut out = Vec::with_capacity(n_steps + 1);
     out.push((x0, y0));
@@ -50,7 +51,7 @@ pub fn spectral_flow_n(x0: f64, y0: f64, n_steps: usize) -> Vec<(f64, f64)> {
 }
 
 /// Generate one trajectory per starting point — Rayon-parallel over starts.
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn spectral_flow_batch(
     starts: Vec<(f64, f64)>,
     n_steps: usize,

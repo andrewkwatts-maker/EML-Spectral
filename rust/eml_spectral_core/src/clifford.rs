@@ -1,5 +1,6 @@
 //! Geometric product for Cl(p, q) — bitmask blade encoding.
 
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
@@ -49,7 +50,7 @@ fn product_one(a: &[f64], b: &[f64], signature: &[i8]) -> Vec<f64> {
 }
 
 /// Batch geometric product for Cl(p, q) — Rayon-parallel.
-#[pyfunction]
+#[cfg_attr(feature = "python", pyfunction)]
 pub fn geometric_product_n(
     a: Vec<Vec<f64>>,
     b: Vec<Vec<f64>>,
