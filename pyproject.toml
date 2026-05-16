@@ -79,6 +79,23 @@ Repository = "https://github.com/andrewkwatts-maker/EML-Spectral"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# ── Optional Rust acceleration (maturin) ────────────────────────────────────
+# Configuration used when maturin is invoked directly to build the
+# eml_spectral_core extension module.
+#
+# The `python` feature enables PyO3 bindings. It is NOT in the crate default
+# (default = []) so that the engine workspace can compile eml_spectral_core
+# without a Python installation.  For PyPI / editable installs run:
+#
+#   maturin develop --features python
+#     or
+#   pip install "eml-spectral[rust]"   (which invokes maturin below)
+[tool.maturin]
+manifest-path = "rust/eml_spectral_core/Cargo.toml"
+module-name = "eml_spectral.eml_spectral_core"
+features = ["python"]
+python-source = "src"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--tb=short"
