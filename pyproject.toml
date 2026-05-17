@@ -70,6 +70,9 @@ dev = [
     "maturin>=1.5",
 ]
 
+[project.scripts]
+eml-spectral-app = "eml_spectral._launcher:launch"
+
 [project.urls]
 Homepage = "https://github.com/andrewkwatts-maker/EML-Spectral"
 Repository = "https://github.com/andrewkwatts-maker/EML-Spectral"
