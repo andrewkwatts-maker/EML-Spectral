@@ -1,6 +1,6 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+﻿[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
 
 [project]
 name = "eml-spectral"
@@ -76,10 +76,7 @@ Repository = "https://github.com/andrewkwatts-maker/EML-Spectral"
 "Bug Tracker" = "https://github.com/andrewkwatts-maker/EML-Spectral/issues"
 "Sister package (core EML)" = "https://github.com/andrewkwatts-maker/EML-Math"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
-# ── Optional Rust acceleration (maturin) ────────────────────────────────────
+# â”€â”€ Optional Rust acceleration (maturin) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Configuration used when maturin is invoked directly to build the
 # eml_spectral_core extension module.
 #
@@ -103,3 +100,4 @@ addopts = "--tb=short"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+

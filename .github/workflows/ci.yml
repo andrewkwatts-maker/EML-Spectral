@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -12,34 +12,21 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Install build tools
         run: pip install --upgrade pip maturin
 
-      - name: Install eml-math from GitHub (pre-PyPI release window)
-        # eml-spectral depends on eml-math >= 1.3.0. The 1.3.0 wheel may not
-        # be on PyPI yet — install directly from the tagged GitHub source so
-        # CI is decoupled from PyPI publishing timing. Once eml-math 1.3.0
-        # is on PyPI this step can be removed; the dep below will pick it up.
-        run: pip install "eml-math @ git+https://github.com/andrewkwatts-maker/EML-Math@v1.3.0"
-
-      - name: Install eml-spectral with dev deps
-        # `--no-deps` would skip eml-math, but we already installed it above
-        # so pip's resolver is satisfied and the [dev,ext] extras come in clean.
-        run: pip install .[dev,ext]
+      - name: Install library with dev deps
+        run: pip install .[dev]
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
