@@ -58,7 +58,10 @@ except ImportError:
 # Convenience aliases
 iterate = simulate_pulses
 
-__version__ = "2.0.2"
+# Companion-app launcher — `eml_spectral.Launch()` finds/clones EML-Spectral-App and runs it.
+from eml_spectral._launcher import launch as Launch
+
+__version__ = "2.0.3"
 __author__ = "Andrew K Watts"
 
 __all__ = [
@@ -108,4 +111,6 @@ __all__ = [
     "SPECTRAL_CATALOGUE",
     # Rust availability flag (True when eml_spectral_core extension is built)
     "_HAS_RUST",
+    # Companion app
+    "Launch",
 ]
