@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "eml-spectral"
-version = "2.0.36"
+version = "2.0.37"
 description = "EML-tree representations of Clifford algebras, octonions, exceptional algebras (E7/E8/Freudenthal), named GR metrics, lattices, and Lorentz-invariant ops. Built on eml-math."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -48,7 +48,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "eml-math>=2.0.36",
+    "eml-math>=2.0.37",
 ]
 
 [project.optional-dependencies]
