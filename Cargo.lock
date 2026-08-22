@@ -51,7 +51,7 @@ version = "1.0.0"
 
 [[package]]
 name = "eml_spectral_core"
-version = "1.0.0"
+version = "2.0.37"
 dependencies = [
  "pyo3",
  "rayon",

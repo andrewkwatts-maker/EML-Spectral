@@ -61,7 +61,7 @@ iterate = simulate_pulses
 # Companion-app launcher — `eml_spectral.Launch()` finds/clones EML-Spectral-App and runs it.
 from eml_spectral._launcher import launch as Launch
 
-__version__ = "2.0.37"
+__version__ = "2.3.0"
 __author__ = "Andrew K Watts"
 
 __all__ = [
