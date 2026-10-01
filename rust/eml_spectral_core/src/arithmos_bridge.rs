@@ -3,29 +3,39 @@
 //! Gated behind the `with-arithmos` Cargo feature, which is **only** available
 //! when this crate is consumed via git-submodule path-dep (e.g. inside the
 //! PlayTow engine workspace). PyPI consumers (`pip install eml-spectral`) do
-//! not see this module — Arithmos is never a public dependency of
+//! not see this module -- Arithmos is never a public dependency of
 //! `eml-spectral`.
 //!
 //! ## Purpose
 //!
-//! The plan's §F.11 design has every numerics library in our stack opt into a
+//! The plan's section F.11 design has every numerics library in our stack opt into a
 //! single symbolic substrate (`ArithmosExpression`) when assembled in-engine,
 //! so spacetime metrics, Christoffel symbols, octonion products and lattice
 //! norms can flow into and out of Arithmos without losing precision or having
 //! to re-parse strings.
 //!
 //! For eml-spectral specifically the high-value targets are:
-//! - **MetricTensor parametrisation** — Schwarzschild's `r_s`, FLRW's `a(t)`,
+//! - **MetricTensor parametrisation** -- Schwarzschild's `r_s`, FLRW's `a(t)`,
 //!   Calabi-Yau moduli, etc. carried as Arithmos sub-trees so Christoffel
 //!   batches stay symbolic until the GPU upload step.
-//! - **Octonion / Multivector amplitude carriers** — components stored as
+//! - **Octonion / Multivector amplitude carriers** -- components stored as
 //!   ArithmosExpression for symbolic differentiation along trajectories.
-//! - **Lattice point predicates** — selection rules on lattice sums become
+//! - **Lattice point predicates** -- selection rules on lattice sums become
 //!   composable Arithmos expressions instead of opaque closures.
 //!
 //! ## Status
 //!
-//! Skeleton only — converters return sensible defaults / `unimplemented!()`.
+//! Skeleton only -- converters return sensible defaults / `unimplemented!()`.
+//!
+//! **This module targets the pre-rename crate.** The symbolic engine's settled
+//! name is `arithma` (`arithma_core::expression::ArithmaExpression`);
+//! `arithmos_core` / `ArithmosExpression` are deprecated aliases retained only
+//! to carry the vendored dependants through the migration. The names here are
+//! left as-is deliberately: the engine workspace is still pinned to the
+//! pre-rename checkout, and the rename is a coordinated change across five
+//! repositories that was attempted and reverted once already. Update this file
+//! in that same change, not before -- see
+//! `H:\Github\GitReview\extractionrithma.md`.
 //! The signatures here are the contract every consumer can rely on; only the
 //! bodies are deferred. Wave 3 wires up the real conversion paths once the
 //! Arithmos surface stabilises.
@@ -56,17 +66,42 @@ pub trait ArithmosPayload {
 pub fn schwarzschild_arithmos_christoffel(
     _r_s: &ArithmosExpression,
 ) -> Result<ArithmosExpression, BridgeError> {
-    Err(BridgeError::NotYetImplemented("schwarzschild_arithmos_christoffel"))
+    Err(BridgeError::NotYetImplemented(
+        "schwarzschild_arithmos_christoffel",
+    ))
 }
 
 /// Errors returned by the bridge.
-#[derive(Debug, thiserror::Error)]
+///
+/// `Display` and `Error` are written out rather than derived with
+/// `thiserror`. That derive was here, and `thiserror` is **not a declared
+/// dependency of this crate** -- not in `Cargo.toml`, and not supplied by the
+/// engine workspace either. So the moment anything actually enabled
+/// `with-arithmos`, this module would have failed to compile. Nothing caught
+/// it because the feature is not a Cargo feature at all (see `Cargo.toml`), so
+/// no build in this repository ever reaches this file.
+///
+/// The rest of the crate hand-writes its error impls -- see
+/// [`crate::error::SpectralError`] -- so this also matches the local style and
+/// keeps the dependency list at zero for an engine-only path.
+#[derive(Debug)]
 pub enum BridgeError {
-    #[error("not yet implemented: {0}")]
+    /// A converter whose body is still deferred. Carries the function name.
     NotYetImplemented(&'static str),
-    #[error("conversion failed: {0}")]
+    /// A conversion was attempted and failed. Carries the reason.
     ConversionFailed(String),
 }
+
+impl core::fmt::Display for BridgeError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::NotYetImplemented(what) => write!(f, "not yet implemented: {what}"),
+            Self::ConversionFailed(why) => write!(f, "conversion failed: {why}"),
+        }
+    }
+}
+
+impl std::error::Error for BridgeError {}
 
 #[cfg(test)]
 mod tests {
@@ -74,7 +109,7 @@ mod tests {
 
     #[test]
     fn schwarzschild_returns_unimplemented_for_now() {
-        // Build a placeholder Arithmos expression — the variable form is
+        // Build a placeholder Arithmos expression -- the variable form is
         // the cheapest non-trivial value.
         let r_s = ArithmosExpression::Variable("r_s".to_string());
         let r = schwarzschild_arithmos_christoffel(&r_s);

@@ -93,7 +93,7 @@ Repository = "https://github.com/andrewkwatts-maker/EML-Spectral"
 [tool.maturin]
 manifest-path = "rust/eml_spectral_core/Cargo.toml"
 module-name = "eml_spectral.eml_spectral_core"
-features = ["python"]
+features = ["extension-module"]
 python-source = "src"
 
 [tool.pytest.ini_options]

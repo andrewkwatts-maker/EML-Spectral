@@ -11,8 +11,25 @@ crate-type = ["cdylib", "lib"]
 # PyPI / maturin builds: enable python so the extension module is built.
 # Engine workspace: python is NOT in default so pyo3 is never pulled in.
 default = []
-python = ["pyo3"]
+# `python` builds the PyO3 bindings and links libpython, so a test binary can
+# actually load. `extension-module` additionally tells PyO3 to leave the CPython
+# symbols undefined, which a wheel needs and a test binary cannot survive.
+#
+# These were one feature -- `extension-module` was hard-coded onto the pyo3
+# dependency -- so `cargo test --features python` could not link and every
+# `#[cfg(test)]` test in the bindings ran nowhere. Only the wheel build may
+# turn `extension-module` on.
+python = ["dep:pyo3"]
+extension-module = ["python", "pyo3/extension-module"]
+
+[lints.rust]
+# `with-arithmos` is set only by the engine workspace, which supplies the
+# arithmos_core path-dep. It cannot be declared as a Cargo feature here because
+# that dependency does not exist for PyPI consumers, so it is declared to
+# rustc's check-cfg instead -- which is what silences `unexpected_cfgs` without
+# hiding any other unexpected cfg.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("with-arithmos"))'] }
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
+pyo3 = { version = "0.22", optional = true }
 rayon = "1.10"
