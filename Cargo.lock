@@ -48,10 +48,13 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 [[package]]
 name = "eml_spectral_c_api"
 version = "1.0.0"
+dependencies = [
+ "eml_spectral_core",
+]
 
 [[package]]
 name = "eml_spectral_core"
-version = "2.0.37"
+version = "2.3.0"
 dependencies = [
  "pyo3",
  "rayon",
