@@ -2,6 +2,38 @@
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Rust test suite (68 tests)** -- property tests for the octonion product (multiplicative norm,
+  non-associativity, alternativity, two-sided identity), the Clifford geometric product
+  (`e_i^2` equals the signature entry, anticommutation, associativity), the E8 root system
+  (240 roots, squared norm 2, closed under negation, integral inner products), the Leech
+  minimum (squared norm 4 for all three shapes of shortest vector), and the spectral flow
+  (finiteness and positivity guards, trajectory/batch agreement). The C ABI kernels are checked
+  against the `eml_spectral_core` copies they duplicate.
+
+### Changed
+
+- **Input validation surfaces as errors, not panics.** `octonion_mul`, `octonion_mul_n`,
+  `octonion_norm_n`, `geometric_product_n`, `e8_norms_squared_n`, `spectral_flow_n`,
+  `spectral_flow_batch` and `add_n` now return `Result<_, SpectralError>`. Previously a vector of
+  the wrong length indexed out of bounds and panicked (surfacing to Python as `PanicException`),
+  and mismatched batch lengths were silently truncated by `zip` to the shorter batch. From Python
+  these now raise `ValueError`. Valid input is unaffected.
+- Clifford signatures are limited to 1..=16 generators with entries of +1 or -1, and a single
+  flow trajectory to 2^22 steps, so every loop bound and allocation is checked.
+
+### Fixed
+
+- Cleared all 41 `cargo clippy --workspace --all-targets` warnings: `# Safety` sections for the
+  11 unsafe C ABI entry points, iterator-based blade and octonion loops, public modules so the
+  kernels are no longer dead code without the `python` feature, and a `check-cfg` declaration for
+  the engine-only `with-arithmos` feature.
+
+---
+
 ## [2.0.1] — 2026-05-17
 
 ### Added
