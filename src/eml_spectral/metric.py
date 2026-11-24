@@ -16,6 +16,13 @@ except ImportError:
     _RUST_METRIC = False
 
 from eml_math.point import EMLPoint
+from eml_math.constants import OVERFLOW_THRESHOLD
+
+
+def _schwarzschild_radius(x: float, rs: float) -> float:
+    """Radius used by the Rust core: guarded exp(x), nudged off the horizon."""
+    guarded = math.log(x) if x > OVERFLOW_THRESHOLD else x
+    return max(math.exp(guarded), rs + 1e-9)
 
 
 class MetricTensor:
@@ -113,10 +120,13 @@ class MetricTensor:
         h : float
             Finite-difference step size.
         """
-        if _RUST_METRIC and self._schwarzschild_rs is not None:
-            return _core.christoffel_batch_n(
-                [(p.x, p.y)], lam, mu, nu, self._schwarzschild_rs
-            )[0]
+        rs = self._schwarzschild_rs
+        if rs is not None:
+            if _RUST_METRIC:
+                return _core.christoffel_batch_n([(p.x, p.y)], lam, mu, nu, rs)[0]
+            return self.schwarzschild_christoffel(
+                lam, mu, nu, r=_schwarzschild_radius(p.x, rs), rs=rs
+            )
 
         x, y = p.x, p.y
 

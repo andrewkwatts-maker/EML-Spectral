@@ -6,6 +6,7 @@
 
 ### Added
 
+- **Rust/Python parity test** (`tests/test_parity.py`) -- geometric product n = 1..10, octonion product and Schwarzschild Christoffel agree exactly (gate 1e-15); the geometric product no longer skips Rust above n = 8, and the Schwarzschild fallback now returns the same analytic (t, r) symbol as Rust instead of a finite difference.
 - **Rust test suite (68 tests)** -- property tests for the octonion product (multiplicative norm,
   non-associativity, alternativity, two-sided identity), the Clifford geometric product
   (`e_i^2` equals the signature entry, anticommutation, associativity), the E8 root system

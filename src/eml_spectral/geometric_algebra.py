@@ -112,7 +112,7 @@ class EMLMultivector:
             raise ValueError("Cannot multiply multivectors with different signatures")
         a = self._scalars()
         b = other._scalars()
-        if _RUST_GA and len(self._sig) <= 8:
+        if _RUST_GA:
             sig_i8 = [int(s) for s in self._sig]
             result = list(_core.geometric_product_n([a], [b], sig_i8)[0])
         else:
