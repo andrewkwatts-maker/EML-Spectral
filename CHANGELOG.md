@@ -32,6 +32,11 @@
   kernels are no longer dead code without the `python` feature, and a `check-cfg` declaration for
   the engine-only `with-arithmos` feature.
 
+### Removed
+
+- The dead `with-arithmos` bridge (`arithmos_bridge`) and its `check-cfg` lint entry; no crate
+  declared `arithmos_core` or the feature, so the module never compiled. Behaviour is unchanged.
+
 ---
 
 ## [2.0.1] — 2026-05-17

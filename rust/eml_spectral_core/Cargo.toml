@@ -22,14 +22,6 @@ default = []
 python = ["dep:pyo3"]
 extension-module = ["python", "pyo3/extension-module"]
 
-[lints.rust]
-# `with-arithmos` is set only by the engine workspace, which supplies the
-# arithmos_core path-dep. It cannot be declared as a Cargo feature here because
-# that dependency does not exist for PyPI consumers, so it is declared to
-# rustc's check-cfg instead -- which is what silences `unexpected_cfgs` without
-# hiding any other unexpected cfg.
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("with-arithmos"))'] }
-
 [dependencies]
 pyo3 = { version = "0.22", optional = true }
 rayon = "1.10"

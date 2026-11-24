@@ -18,14 +18,6 @@ pub mod lattice;
 pub mod octonion;
 pub mod spectral;
 
-// Optional Arithmos symbolic-substrate bridge. Only available when consumed via
-// git submodule path-dep (the engine workspace) -- never as a PyPI dep. See
-// plan section F.11 for the cross-library `with-arithmos` pattern. The feature
-// is declared to rustc's check-cfg in Cargo.toml rather than to Cargo, because
-// its dependencies only exist inside that workspace.
-#[cfg(feature = "with-arithmos")]
-pub mod arithmos_bridge;
-
 pub use clifford::geometric_product_n;
 pub use error::SpectralError;
 pub use lattice::{e8_min_norm_squared, e8_norms_squared_n, leech_min_norm_squared};
